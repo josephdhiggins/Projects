@@ -1,0 +1,184 @@
+import pygame # importing pygame
+from bot import GuessingBot, Bot
+from filemanager import BotFileManager #importing the BotFileManager class from the filemanager.py file
+
+pygame.init() #intitialising pygame
+
+DISPLAY_WIDTH = 800 #setting the width of the display window to 800 pixels
+DISPLAY_HEIGHT = 600 #setting the height of the display window to 600 pixels
+DISPLAY_SIZE = [DISPLAY_WIDTH, DISPLAY_HEIGHT] #storing the height and width of the window in a list named DISPLAY_SIZE
+display = pygame.display.set_mode(DISPLAY_SIZE) #creating a variable that initialises a screen for display
+
+robot_image = pygame.image.load("robot.png") # loading the image and storing it into the robot_image variable
+image_x = 0
+image_y = 0
+image_position = [image_x, image_y] #defining top left hand corner position of image
+image_size = [50,50] # setting the height and width of the image
+image_scaled = pygame.transform.scale(robot_image, DISPLAY_SIZE) #setting the scale of the image as the size of the displayed window
+
+clock = pygame.time.Clock() #initialising the time of the pygame
+
+black = [0, 0, 0] #setting the colour as black through the values of 0 for red, 0 for green and 0 for blue
+
+
+display.fill(black) #setting the background image of the window as black
+display.blit(image_scaled, image_position) #superimposing layers onto the display window
+pygame.display.update() #updating the display so that the previous changes are applied
+
+run_game = True #setting the game loop as through true
+
+for event in pygame.event.get():
+  if event.type == pygame.QUIT: #if the user clicks the 'X' on the top right of the window then the pygame will quit
+    run_game = False #quitting the pygame
+
+
+file1 = BotFileManager("botfilemanager.txt")
+
+word1 = BotFileManager("botfilemanager.txt") #creating 
+
+words_as_dictionary = word1.all_words()  
+
+bot = Bot("Josephs Bot", words_as_dictionary)
+
+bot_1 = GuessingBot("GiraffeBot", words_as_dictionary)#instatiating the object and it contains the robots nickname and the dictionary with the keywords stored as the keys and the clues stored, in a list, as the values.
+
+bot.draw()
+
+player_name = input("Enter your name: ")#asking the user to enter their name in order for it to be printed out in the greeting.
+
+greeting = bot_1.initial_greeting(player_name) #this line calls the greeting to the user and it contains the inputted name from the player
+
+player_response = bot_1.respond_to_gameplay(greeting) #this line stores the answer recieved from the user where they answer whether they want to play or not
+
+yes = ("y") #setting their response as a variable so that their answer isnt case sensitive
+no = ("n") #setting their response as a variable so that their answer isnt case sensitive
+
+if greeting == no.upper() or greeting == no.lower():
+  print("This game will now close.") 
+  pass #if the answer was 'n' they will be informed that the game will now close.
+
+if greeting != "y" or greeting != "n":
+  print("This game will now close.")
+  pass #if the command was not recognised they will be informed that the game will now close
+
+bot.draw()
+
+if greeting == yes.upper() or greeting == yes.lower():
+  print("GREAT! THANKS FOR PLAYING. IF YOU WANT TO CHANGE THE SCORING CRITERIA,JUST TYPE 'score'. IF YOU WANT A NEW SET OF WORDS JUST TYPE 'new'. THE GAME WILL NOW BEGIN.") #if the answer was 'y' they will be presented with this message.
+
+  bot_1.clue() # they will then be presented with their first clue for Word 1
+
+  key_word = input("What is the word: ") # this asks them what their guess for clue one is.
+
+  bot_1.guess(key_word) #this line checks to see if their answer matches the first word
+
+  if key_word == "new": #if the user inputs 'new' then the following methods are called
+    new_dict = word1.new_words() #storing my new dictionary of words into this variable
+    bot_1 = GuessingBot("GiraffeBot", new_dict) #instantiating the class again but this time with the new dictionary 
+    bot_1.clue() #they will then be presented with their first clue for Word 1
+    key_word = input("What is the word: ") # this asks them what their guess for clue one is.
+    bot_1.guess(key_word) #this line checks to see if their answer matches the first word
+
+    
+  if key_word == "score": #if the user inputs 'score' then the new scoring_criteria method is called
+    bot_1.scoring_criteria()
+    
+  while bot_1.keyword_counter < len(bot_1.key_word): #initialising a loop that continues as long as the word counter is less than the amount of words in the dictionary.
+    if bot_1.answer == True: #if their guess was correct the following methods will be called.
+      bot_1.next_word() #calls the method that iterates to the next word of the dictionary
+      bot_1.clue() #presents the user with the clue of that word
+      key_word = input("What is the word: ") #asks the user to guess
+      bot_1.guess(key_word) #checks to see if their answer matches the next word.
+
+      if key_word == "new": #repeated
+        new_dict = word1.new_words()
+        bot_1 = GuessingBot("GiraffeBot", new_dict)
+        bot_1.clue()
+        key_word = input("What is the word: ")
+        bot_1.guess(key_word)
+      
+      if key_word == "score": #repeated
+          bot_1.scoring_criteria()
+
+
+    else: #if the answer was incorrect the following methods will be called.
+      while bot_1.valueclue_counter < len(bot_1.value_clues): #initialising a loop that lasts as long as the clue counter is less than the number of clues per word.
+        if bot_1.answer == False:
+          bot_1.next_clue() #if their next guess was incorrect, they will be presented with the next clue.
+          key_word = input("What is the word: ") #asks the user for their next guess
+          bot_1.guess(key_word) #checks to see if their answer matches the next word.
+
+
+          if key_word == "new": #repeated
+            new_dict = word1.new_words()
+            bot_1 = GuessingBot("GiraffeBot", new_dict)
+            bot_1.clue()
+            key_word = input("What is the word: ")
+            bot_1.guess(key_word)
+
+          if key_word == "score": #repeated
+            bot_1.scoring_criteria()
+            
+
+        else:
+          bot_1.next_word() #if the answer is not false (true), they will be presented with the next word of the dictionary
+          bot_1.clue() # calls the first clue of the next word for the user          
+          key_word = input("What is the word: ")#asks for the user to guess what the word is
+          bot_1.guess(key_word) #this method checks the guess of the user to see if it matches the next word
+
+
+          if key_word == "new": #repeated
+            new_dict = word1.new_words()
+            bot_1 = GuessingBot("GiraffeBot", new_dict)
+            bot_1.clue()
+            key_word = input("What is the word: ")
+            bot_1.guess(key_word)
+
+          if key_word == "score": #repeated
+            bot_1.scoring_criteria()
+
+              
+      else: #if the code runs out of clues then the game will print the following statement
+        bot.draw()
+        print("UNLUCKY, YOU ARE OUT OF CLUES. THE WORD WAS: %s"  % bot_1.nextWord)
+        bot_1.score_counter += 10
+        bot_1.answer = True #the guess was defined as true to allow the user to continue to the next word.
+
+  else: #if the keyword counter is equal to the number of words in the dictionary, i.e. the final word, then the following methods will be called
+    if bot_1.answer == bot_1.nextWord: #if the first guess of the final word is correct then the following comment will be printed
+      print("The game is now finished. Thanks for playing!!") #it will inform the user that the game is finished and it will thank the user for playing
+
+      if key_word == "new": #repeated
+        new_dict = word1.new_words()
+        bot_1 = GuessingBot("GiraffeBot", new_dict)
+        bot_1.clue()
+        key_word = input("What is the word: ")
+        bot_1.guess(key_word)
+
+        if key_word == "score": #repeated
+          bot_1.scoring_criteria()
+
+    elif bot_1.answer != bot_1.nextWord: #if the first guess of the final word is incorrect the following will happen..
+      while bot_1.valueclue_counter < len(bot_1.value_clues): #initialises a loop that lasts as long as the clue counter is less than the number of clues per word.
+        if bot_1.answer == True:
+          print("The game is now finished. Thanks for playing!!")#if the user guesses correctly within this loop they will be informed that the game is over and be thanked for playing.
+          break #stops the string from looping indefinitely
+        elif bot_1.answer == False: #if the user guesses incorrectly within the loop the following methods will be called
+          bot_1.next_clue()#next clue will be presented to the user
+          key_word = input("What is the word: ")# asks for their guess
+          bot_1.guess(key_word)#checks to see if their guess matches the key word.
+      else: #if they run out of clues on the final word, the following statements will be printed.
+        bot.draw()
+        print("UNLUCKY, YOU ARE OUT OF CLUES. THE WORD WAS: %s" % bot_1.nextWord) 
+        bot_1.score_counter += 10
+        bot.draw()
+        print("The game is now finished. Thanks for playing!!")
+  pass
+
+bot_1.add_score()
+
+clock.tick(40)
+
+pygame.quit()
+
+quit()
